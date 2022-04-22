@@ -41,11 +41,33 @@ Page {
         GridLayout {
             columns: root.width > units.gu(70) ? 2 : 1
 
-            TextArea {
-                id: input
-                placeholderText: "Hello!"
+            ColumnLayout {
+                TextArea {
+                    id: input
+                    placeholderText: "Hello!"
 
-                Layout.fillHeight: true
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                }
+                RowLayout {
+                    QQC.Button {
+                        icon.name: "edit-clear"
+                        Layout.preferredWidth: units.gu(5)
+                    }
+                    QQC.Button {
+                        icon.name: "edit-copy"
+                        Layout.preferredWidth: units.gu(5)
+                    }
+                    QQC.Button {
+                        icon.name: "audio-volume-high"
+                        Layout.preferredWidth: units.gu(5)
+                    }
+                    QQC.Button {
+                        text: "Translate"
+                        Layout.fillWidth: true
+//                         Layout.preferredWidth: units.gu(5)
+                    }
+                }
                 Layout.fillWidth: true
 
                 Layout.leftMargin: units.gu(preferences.commonMargin)
@@ -78,7 +100,8 @@ Page {
             }
             QQC.Button {
                 icon.name: "swap"
-                Layout.preferredWidth: icon.width*2
+//                 icon.width: units.gu(3)
+                Layout.preferredWidth: units.gu(5)
 
                 enabled: source_lang.currentIndex - 1 != -1 ? true : false
                 onClicked: {
