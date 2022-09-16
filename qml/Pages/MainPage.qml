@@ -1,30 +1,48 @@
-import QtQuick 2.7
+/*
+ * Copyright (C) 2022  walking-octopus
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 3.
+ *
+ * translate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+import QtQuick 2.9
 import Ubuntu.Components 1.3
 //import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.12 as QQC
 import QtQuick.Controls.Suru 2.2
+import "../Components"
 
 Page {
     anchors.fill: parent
 
     header: PageHeader {
         id: header
-        title: i18n.tr('Translate')
+        title: lingva.isLoading ? "..." : i18n.tr("Translate")
 
         trailingActionBar {
             actions: [
                 Action {
                     iconName: "settings"
                     text: i18n.tr("Settings")
-                    // Todo: add settings
                     onTriggered: showSettings()
                 },
                 Action {
                     iconName: "info"
                     text: i18n.tr("About")
                     onTriggered: pStack.push(Qt.resolvedUrl("./About.qml"))
-                }]
+                }
+            ]
         }
     }
     title: i18n.tr("Translate")
@@ -45,20 +63,93 @@ Page {
                 id: input
                 placeholderText: i18n.tr("Hello!")
                 font.pixelSize: FontUtils.sizeToPixels("medium") * preferences.fontSize / 10
-
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-
+                
+                Layout.fillHeight: true; Layout.fillWidth: true
                 Layout.leftMargin: units.gu(preferences.commonMargin)
                 Layout.rightMargin: units.gu(preferences.commonMargin)
                 Layout.topMargin: units.gu(preferences.commonMargin)
+
+                // Play
+                // Button {
+                //     anchors {
+                //         right: parent.right
+                //         bottom: parent.bottom
+                //         rightMargin: units.gu(2)
+                //         bottomMargin: units.gu(2)
+                //     }
+
+                //     iconName: "media-playback-start"
+                //     onClicked: lingva.get_audio(
+                //         input.text,
+                //         lingva.language_name_to_code(source_lang.currentIndex)
+                //     )
+                //     width: units.gu(4)
+                //     color: "transparent"
+                // }
             }
-            // Todo: add the bottom pannel
+
             TextArea {
                 id: output
                 placeholderText: "Bonjour!"
                 font.pixelSize: FontUtils.sizeToPixels("medium") * preferences.fontSize / 10
                 readOnly: true
+
+                // Clear, Copy, Play
+                Button {
+                    anchors {
+                        right: parent.right
+                        bottom: parent.bottom
+                        rightMargin: units.gu(2)
+                        bottomMargin: units.gu(2)
+                    }
+
+                    iconName: "edit-clear"
+                    onClicked: {
+                        output.text = "";
+                        input.text = "";
+                        toast.show(
+                            i18n.tr("Cleared!")
+                        );
+                    }
+                    width: units.gu(4)
+                    color: "transparent"
+                }
+
+                Button {
+                    anchors {
+                        right: parent.right
+                        bottom: parent.bottom
+                        rightMargin: units.gu(6)
+                        bottomMargin: units.gu(2)
+                    }
+
+                    iconName: "edit-copy"
+                    onClicked: {
+                        Clipboard.push(output.text);
+                        toast.show(
+                            i18n.tr("Copied!")
+                        );
+                    }
+                    width: units.gu(4)
+                    color: "transparent"
+                }
+
+                // Button {
+                //     anchors {
+                //         right: parent.right
+                //         bottom: parent.bottom
+                //         rightMargin: units.gu(10)
+                //         bottomMargin: units.gu(2)
+                //     }
+                    
+                //     iconName: "media-playback-start"
+                //     onClicked: lingva.get_audio(
+                //         output.text,
+                //         lingva.language_name_to_code(target_lang.currentIndex + 1)
+                //     )
+                //     width: units.gu(4)
+                //     color: "transparent"
+                // }
 
                 // A hack to allow copying text
                 onSelectedTextChanged: {
@@ -67,15 +158,13 @@ Page {
                     }
                 }
 
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-
+                Layout.fillHeight: true; Layout.fillWidth: true
                 Layout.leftMargin: units.gu(preferences.commonMargin)
                 Layout.rightMargin: units.gu(preferences.commonMargin)
                 Layout.topMargin: units.gu(preferences.commonMargin)
             }
-            Layout.fillHeight: true
-            Layout.fillWidth: true
+
+            Layout.fillHeight: true; Layout.fillWidth: true
         }
 
         RowLayout {
@@ -85,21 +174,23 @@ Page {
 
                 onCurrentIndexChanged: preferences.last_source_lang = source_lang.currentIndex
             }
+
             QQC.Button {
                 icon.name: "swap"
-                Layout.preferredWidth: icon.width*2
+                // Layout.preferredWidth: icon.width*2
 
                 enabled: source_lang.currentIndex - 1 != -1 ? true : false
                 onClicked: {
-                    const old_source_lang = source_lang.currentIndex
-                    source_lang.currentIndex = target_lang.currentIndex + 1
-                    target_lang.currentIndex = old_source_lang - 1
+                    const old_source_lang = source_lang.currentIndex;
+                    source_lang.currentIndex = target_lang.currentIndex + 1;
+                    target_lang.currentIndex = old_source_lang - 1;
 
-                    const old_input = input.text
-                    input.text = output.text
-                    output.text = old_input
+                    const old_input = input.text;
+                    input.text = output.text;
+                    output.text = old_input;
                 }
             }
+
             QQC.ComboBox {
                 id: target_lang
                 Layout.fillWidth: true
@@ -107,7 +198,10 @@ Page {
                 onCurrentIndexChanged: preferences.last_target_lang = target_lang.currentIndex
             }
 
-            Component.onCompleted: lingva.get_languages(preferences.last_source_lang, preferences.last_target_lang)
+            Component.onCompleted: lingva.get_languages(
+                preferences.last_source_lang,
+                preferences.last_target_lang
+            )
 
             Layout.fillWidth: true
             Layout.leftMargin: units.gu(preferences.commonMargin)
@@ -115,11 +209,16 @@ Page {
         }
 
         Button {
-            text: i18n.tr('Translate!')
+            text: i18n.tr("Translate!")
             onClicked: lingva.translate(
-                lingva.language_name_to_code(source_lang.currentIndex),
-                lingva.language_name_to_code(target_lang.currentIndex + 1),
-                input.text)
+                lingva.language_name_to_code(
+                    source_lang.currentIndex
+                ),
+                lingva.language_name_to_code(
+                    target_lang.currentIndex + 1
+                ),
+                input.text
+            )
 
             color: UbuntuColors.green
             enabled: input.length != 0 ? true : false
@@ -129,58 +228,9 @@ Page {
             Layout.rightMargin: units.gu(preferences.commonMargin)
             Layout.bottomMargin: units.gu(preferences.commonMargin)
         }
-
     }
 
-    QtObject {
+    Lingva {
         id: lingva
-        property string baseURL
-        property var languages
-
-        function translate(source, target, query) {
-            const url = baseURL + "/%1/%2/%3".arg(source).arg(target).arg(encodeURIComponent(query))
-
-            request(url).then(response => {
-                const data = JSON.parse(response)
-
-                //print(data.translation)
-
-                output.text = data.translation
-            })
-            .catch(error => console.error(error))
-        }
-
-        function get_audio(lang, query) {
-            const url = baseURL + "/audio/%1/%2".arg(lang).arg(encodeURIComponent(query))
-
-            request(url).then(response => {
-                const data = JSON.parse(response)
-
-                print(data.audio)
-            })
-        }
-
-        function get_languages(last_source_lang, last_target_lang) {
-            request(baseURL + "/languages").then(response => {
-                const data = JSON.parse(response)
-                languages = data.languages
-
-                let language_names = []
-                languages.forEach(i => language_names.push(i.name))
-                //for(var i = 1; i <= 10; i++) {language_names.push(i)}
-
-                source_lang.model = language_names
-                language_names.shift(); target_lang.model = language_names
-
-                target_lang.currentIndex = last_target_lang
-                source_lang.currentIndex = last_source_lang
-            })
-        }
-
-        function language_name_to_code(i) {
-            return languages[i].code
-        }
-
-        Component.onCompleted: lingva.baseURL = preferences.baseURL
     }
 }

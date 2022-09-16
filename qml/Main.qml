@@ -14,12 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.7
+import QtQuick 2.9
 import Ubuntu.Components 1.3
 //import QtQuick.Controls 2.2
 //import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
-//import "./Components"
+import "./Components"
 
 MainView {
     id: root
@@ -27,7 +27,7 @@ MainView {
     applicationName: 'translate.walking-octopus'
     automaticOrientation: true
 
-    width: units.gu(65)
+    width: units.gu(100)
     height: units.gu(70)
     anchorToKeyboard: true
 
@@ -48,6 +48,8 @@ MainView {
 
         Component.onCompleted: pStack.push(Qt.resolvedUrl("./Pages/MainPage.qml"))
     }
+
+    Toast { id: toast }
 
     function showSettings() {
         var prop = {
@@ -71,15 +73,24 @@ MainView {
     function request(url) {
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
+
+            var timer = Qt.createQmlObject("import QtQuick 2.9; Timer {interval: 4000; repeat: false; running: true;}",root,"TimeoutTimer");
+            timer.triggered.connect(function(){
+                xhr.abort();
+                xhr.response = "Timed out";
+                reject("Timed out");
+            });
+
             xhr.open("GET", url, true);
             xhr.onload = () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     resolve(xhr.response);
                 } else {
-                    reject(xhr.statusText);
+                    reject(xhr.status);
                 }
+                timer.running = false;
             };
-            xhr.onerror = () => reject(xhr.statusText);
+            xhr.onerror = () => reject(xhr.response);
             xhr.send();
         });
     }
